@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -32,9 +34,10 @@ func main() {
 	router.HandleFunc("/users/{id}", userEnd.Update).Methods("PATCH")
 	router.HandleFunc("/users/{id}", userEnd.Delete).Methods("DELETE")
 
+	port := os.Getenv("PORT")
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         "127.0.0.1:8081",
+		Addr:         fmt.Sprintf("127.0.0.1:%s", port),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  4 * time.Second,
 	}

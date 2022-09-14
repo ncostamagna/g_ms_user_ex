@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ncostamagna/g_ms_client/meta"
+	"github.com/ncostamagna/g_ms_user_ex/pkg/response"
 )
 
 //Endpoints struct
@@ -62,19 +62,19 @@ func makeCreateEndpoint(s Service) Controller {
 		req := request.(CreateReq)
 
 		if req.FirstName == "" {
-			return nil, errors.New("first name is required")
+			return nil, response.BadRequest("first name is required")
 		}
 
 		if req.LastName == "" {
-			return nil, errors.New("last name is required")
+			return nil, response.BadRequest("last name is required")
 		}
 
 		user, err := s.Create(req.FirstName, req.LastName, req.Email, req.Phone)
 		if err != nil {
-			return nil, err
+			return nil, response.BadRequest(err.Error())
 		}
 
-		return &Response{Status: 200, Data: user}, nil
+		return response.Created("success", user, nil), nil
 	}
 }
 

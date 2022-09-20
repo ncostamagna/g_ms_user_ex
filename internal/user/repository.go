@@ -1,9 +1,11 @@
 package user
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"strings"
+
+	"github.com/go-kit/kit/log"
 
 	"github.com/ncostamagna/g_ms_user_ex/internal/domain"
 	"gorm.io/gorm"
@@ -11,43 +13,41 @@ import (
 
 type (
 	Repository interface {
-		Create(user *domain.User) error
-		GetAll(filters Filters, offset, limit int) ([]domain.User, error)
-		Get(id string) (*domain.User, error)
-		Delete(id string) error
-		Update(id string, firstName *string, lastName *string, email *string, phone *string) error
-		Count(filters Filters) (int, error)
+		Create(ctx context.Context, user *domain.User) error
+		GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error)
+		Get(ctx context.Context, id string) (*domain.User, error)
+		Delete(ctx context.Context, id string) error
+		Update(ctx context.Context, id string, firstName *string, lastName *string, email *string, phone *string) error
+		Count(ctx context.Context, filters Filters) (int, error)
 	}
 
 	repo struct {
 		db  *gorm.DB
-		log *log.Logger
+		log log.Logger
 	}
 )
 
 //NewRepo is a repositories handler
-func NewRepo(db *gorm.DB, l *log.Logger) Repository {
+func NewRepo(db *gorm.DB, l log.Logger) Repository {
 	return &repo{
 		db:  db,
 		log: l,
 	}
 }
 
-func (r *repo) Create(user *domain.User) error {
+func (r *repo) Create(ctx context.Context, user *domain.User) error {
 
-	if err := r.db.Create(user).Error; err != nil {
-		r.log.Printf("error: %v", err)
+	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
 		return err
 	}
 
-	r.log.Println("user created with id: ", user.ID)
 	return nil
 }
 
-func (r *repo) GetAll(filters Filters, offset, limit int) ([]domain.User, error) {
+func (r *repo) GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error) {
 	var u []domain.User
 
-	tx := r.db.Model(&u)
+	tx := r.db.WithContext(ctx).Model(&u)
 	tx = applyFilters(tx, filters)
 	tx = tx.Limit(limit).Offset(offset)
 	result := tx.Order("created_at desc").Find(&u)
@@ -58,9 +58,9 @@ func (r *repo) GetAll(filters Filters, offset, limit int) ([]domain.User, error)
 	return u, nil
 }
 
-func (r *repo) Get(id string) (*domain.User, error) {
+func (r *repo) Get(ctx context.Context, id string) (*domain.User, error) {
 	user := domain.User{ID: id}
-	result := r.db.First(&user)
+	result := r.db.WithContext(ctx).First(&user)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -68,9 +68,9 @@ func (r *repo) Get(id string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *repo) Delete(id string) error {
+func (r *repo) Delete(ctx context.Context, id string) error {
 	user := domain.User{ID: id}
-	result := r.db.Delete(&user)
+	result := r.db.WithContext(ctx).Delete(&user)
 
 	if result.Error != nil {
 		return result.Error
@@ -79,7 +79,7 @@ func (r *repo) Delete(id string) error {
 }
 
 // PATCH vs PUT
-func (r *repo) Update(id string, firstName *string, lastName *string, email *string, phone *string) error {
+func (r *repo) Update(ctx context.Context, id string, firstName *string, lastName *string, email *string, phone *string) error {
 
 	values := make(map[string]interface{})
 
@@ -98,16 +98,16 @@ func (r *repo) Update(id string, firstName *string, lastName *string, email *str
 		values["phone"] = *phone
 	}
 
-	if err := r.db.Model(&domain.User{}).Where("id = ?", id).Updates(values); err.Error != nil {
+	if err := r.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Updates(values); err.Error != nil {
 		return err.Error
 	}
 
 	return nil
 }
 
-func (r *repo) Count(filters Filters) (int, error) {
+func (r *repo) Count(ctx context.Context, filters Filters) (int, error) {
 	var count int64
-	tx := r.db.Model(domain.User{})
+	tx := r.db.WithContext(ctx).Model(domain.User{})
 	tx = applyFilters(tx, filters)
 	if err := tx.Count(&count).Error; err != nil {
 		return 0, err

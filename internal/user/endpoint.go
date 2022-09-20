@@ -69,7 +69,7 @@ func makeCreateEndpoint(s Service) Controller {
 			return nil, response.BadRequest("last name is required")
 		}
 
-		user, err := s.Create(req.FirstName, req.LastName, req.Email, req.Phone)
+		user, err := s.Create(ctx, req.FirstName, req.LastName, req.Email, req.Phone)
 		if err != nil {
 			return nil, response.BadRequest(err.Error())
 		}

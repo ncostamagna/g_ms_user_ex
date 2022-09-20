@@ -3,9 +3,8 @@ package user
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
-
-	"github.com/go-kit/kit/log"
 
 	"github.com/ncostamagna/g_ms_user_ex/internal/domain"
 	"gorm.io/gorm"
@@ -23,12 +22,12 @@ type (
 
 	repo struct {
 		db  *gorm.DB
-		log log.Logger
+		log *log.Logger
 	}
 )
 
 //NewRepo is a repositories handler
-func NewRepo(db *gorm.DB, l log.Logger) Repository {
+func NewRepo(db *gorm.DB, l *log.Logger) Repository {
 	return &repo{
 		db:  db,
 		log: l,
@@ -40,7 +39,7 @@ func (r *repo) Create(ctx context.Context, user *domain.User) error {
 	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
 		return err
 	}
-
+	r.log.Println("user created with id: ", user.ID)
 	return nil
 }
 

@@ -1,12 +1,10 @@
 package user
 
 import (
-	"fmt"
-
 	"context"
+	"log"
 
 	"github.com/ncostamagna/g_ms_user_ex/internal/domain"
-	"github.com/ncostamagna/g_ms_user_ex/pkg/logger"
 )
 
 type (
@@ -25,13 +23,13 @@ type (
 	}
 
 	service struct {
-		log  logger.Logger
+		log  *log.Logger
 		repo Repository
 	}
 )
 
 //NewService is a service handler
-func NewService(l logger.Logger, repo Repository) Service {
+func NewService(l *log.Logger, repo Repository) Service {
 	return &service{
 		log:  l,
 		repo: repo,
@@ -48,11 +46,10 @@ func (s service) Create(ctx context.Context, firstName, lastName, email, phone s
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
-		logger.Error(s.log, err.Error())
+		s.log.Println(err)
 		return nil, err
 	}
 
-	logger.Success(s.log, fmt.Sprintf("user created with id: %s", user.ID))
 	return user, nil
 }
 
@@ -60,7 +57,7 @@ func (s service) GetAll(ctx context.Context, filters Filters, offset, limit int)
 
 	users, err := s.repo.GetAll(ctx, filters, offset, limit)
 	if err != nil {
-		logger.Error(s.log, err.Error())
+		s.log.Println(err)
 		return nil, err
 	}
 	return users, nil
@@ -69,7 +66,7 @@ func (s service) GetAll(ctx context.Context, filters Filters, offset, limit int)
 func (s service) Get(ctx context.Context, id string) (*domain.User, error) {
 	user, err := s.repo.Get(ctx, id)
 	if err != nil {
-		logger.Error(s.log, err.Error())
+		s.log.Println(err)
 		return nil, err
 	}
 	return user, nil

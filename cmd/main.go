@@ -12,26 +12,20 @@ import (
 	"github.com/ncostamagna/g_ms_user_ex/internal/user"
 	"github.com/ncostamagna/g_ms_user_ex/pkg/bootstrap"
 	"github.com/ncostamagna/g_ms_user_ex/pkg/handler"
-	"github.com/ncostamagna/g_ms_user_ex/pkg/logger"
 )
 
 func main() {
 
 	_ = godotenv.Load()
+	l := bootstrap.InitLogger()
 	db, err := bootstrap.DBConnection()
 	if err != nil {
-		log.Fatal(err)
+		l.Fatal(err)
 	}
 
 	ctx := context.Background()
-
-	var userSrv user.Service
-	{
-		log := logger.New("users")
-		repo := user.NewRepo(db, log)
-		userSrv = user.NewService(log, repo)
-	}
-
+	userRepo := user.NewRepo(db, l)
+	userSrv := user.NewService(l, userRepo)
 	h := handler.NewUserHTTPServer(ctx, user.MakeEndpoints(userSrv))
 	port := os.Getenv("PORT")
 

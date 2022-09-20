@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/ncostamagna/g_ms_user_ex/internal/domain"
@@ -35,4 +36,8 @@ func DBConnection() (*gorm.DB, error) {
 	}
 
 	return db, err
+}
+
+func InitLogger() *log.Logger {
+	return log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
 }

@@ -54,7 +54,6 @@ func (s service) Create(ctx context.Context, firstName, lastName, email, phone s
 }
 
 func (s service) GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error) {
-
 	users, err := s.repo.GetAll(ctx, filters, offset, limit)
 	if err != nil {
 		s.log.Println(err)
@@ -76,6 +75,7 @@ func (s service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
 
+// ver que podemos tener problemas al agregar texto mayor a lo que se espera en la base de datos
 func (s service) Update(ctx context.Context, id string, firstName *string, lastName *string, email *string, phone *string) error {
 	return s.repo.Update(ctx, id, firstName, lastName, email, phone)
 }

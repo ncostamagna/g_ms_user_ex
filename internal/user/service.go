@@ -46,7 +46,6 @@ func (s service) Create(ctx context.Context, firstName, lastName, email, phone s
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
-		s.log.Println(err)
 		return nil, err
 	}
 
@@ -56,7 +55,6 @@ func (s service) Create(ctx context.Context, firstName, lastName, email, phone s
 func (s service) GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error) {
 	users, err := s.repo.GetAll(ctx, filters, offset, limit)
 	if err != nil {
-		s.log.Println(err)
 		return nil, err
 	}
 	return users, nil
@@ -65,7 +63,6 @@ func (s service) GetAll(ctx context.Context, filters Filters, offset, limit int)
 func (s service) Get(ctx context.Context, id string) (*domain.User, error) {
 	user, err := s.repo.Get(ctx, id)
 	if err != nil {
-		s.log.Println(err)
 		return nil, err
 	}
 	return user, nil
@@ -74,7 +71,6 @@ func (s service) Get(ctx context.Context, id string) (*domain.User, error) {
 func (s service) Delete(ctx context.Context, id string) error {
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		s.log.Println(err)
 		return err
 	}
 
@@ -86,7 +82,6 @@ func (s service) Delete(ctx context.Context, id string) error {
 func (s service) Update(ctx context.Context, id string, firstName *string, lastName *string, email *string, phone *string) error {
 
 	if err := s.repo.Update(ctx, id, firstName, lastName, email, phone); err != nil {
-		s.log.Println(err)
 		return err
 	}
 	return nil

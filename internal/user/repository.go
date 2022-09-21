@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -38,6 +37,7 @@ func NewRepo(db *gorm.DB, l *log.Logger) Repository {
 func (r *repo) Create(ctx context.Context, user *domain.User) error {
 
 	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+		r.log.Println(err)
 		return err
 	}
 	r.log.Println("user created with id: ", user.ID)
@@ -53,6 +53,7 @@ func (r *repo) GetAll(ctx context.Context, filters Filters, offset, limit int) (
 	result := tx.Order("created_at desc").Find(&u)
 
 	if result.Error != nil {
+		r.log.Println(result.Error)
 		return nil, result.Error
 	}
 	return u, nil
@@ -63,7 +64,8 @@ func (r *repo) Get(ctx context.Context, id string) (*domain.User, error) {
 	result := r.db.WithContext(ctx).First(&user)
 
 	if result.Error != nil {
-		return nil, result.Error
+		r.log.Println(result.Error)
+		return nil, ErrNotFound
 	}
 	return &user, nil
 }
@@ -73,11 +75,13 @@ func (r *repo) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).Delete(&user)
 
 	if result.Error != nil {
+		r.log.Println(result.Error)
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("Not found")
+		r.log.Printf("user %s doesn't exists", id)
+		return ErrNotFound
 	}
 	return nil
 }
@@ -104,11 +108,13 @@ func (r *repo) Update(ctx context.Context, id string, firstName *string, lastNam
 
 	result := r.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Updates(values)
 	if result.Error != nil {
+		r.log.Println(result.Error)
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("Not found")
+		r.log.Printf("user %s doesn't exists", id)
+		return ErrNotFound
 	}
 
 	return nil
@@ -119,6 +125,7 @@ func (r *repo) Count(ctx context.Context, filters Filters) (int, error) {
 	tx := r.db.WithContext(ctx).Model(domain.User{})
 	tx = applyFilters(tx, filters)
 	if err := tx.Count(&count).Error; err != nil {
+		r.log.Println(err)
 		return 0, err
 	}
 

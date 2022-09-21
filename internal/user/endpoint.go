@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ncostamagna/g_ms_client/meta"
 	"github.com/ncostamagna/g_ms_user_ex/pkg/response"
@@ -74,16 +73,16 @@ func makeCreateEndpoint(s Service) Controller {
 		req := request.(CreateReq)
 
 		if req.FirstName == "" {
-			return nil, response.BadRequest("first name is required")
+			return nil, response.BadRequest(ErrFirstNameRequired.Error())
 		}
 
 		if req.LastName == "" {
-			return nil, response.BadRequest("last name is required")
+			return nil, response.BadRequest(ErrLastNameRequired.Error())
 		}
 
 		user, err := s.Create(ctx, req.FirstName, req.LastName, req.Email, req.Phone)
 		if err != nil {
-			return nil, response.BadRequest(err.Error())
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.Created("success", user, nil), nil
@@ -97,7 +96,11 @@ func makeGetEndpoint(s Service) Controller {
 
 		user, err := s.Get(ctx, req.ID)
 		if err != nil {
-			return nil, response.NotFound(fmt.Sprintf("user with '%s' id doesn't exist", req.ID))
+			if err == ErrNotFound {
+				return nil, response.NotFound(err.Error())
+			}
+
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.OK("success", user, nil), nil
@@ -116,7 +119,7 @@ func makeGetAllEndpoint(s Service) Controller {
 
 		count, err := s.Count(ctx, filters)
 		if err != nil {
-			return nil, response.BadRequest(err.Error())
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		meta, err := meta.New(req.Page, req.Limit, count)
@@ -126,7 +129,7 @@ func makeGetAllEndpoint(s Service) Controller {
 
 		users, err := s.GetAll(ctx, filters, meta.Offset(), meta.Limit())
 		if err != nil {
-			return nil, response.BadRequest(err.Error())
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.OK("success", users, meta), nil
@@ -138,15 +141,20 @@ func makeUpdateEndpoint(s Service) Controller {
 		req := request.(UpdateReq)
 
 		if req.FirstName != nil && *req.FirstName == "" {
-			return nil, response.BadRequest("first name is required")
+			return nil, response.BadRequest(ErrFirstNameRequired.Error())
 		}
 
 		if req.LastName != nil && *req.LastName == "" {
-			return nil, response.BadRequest("last name is required")
+			return nil, response.BadRequest(ErrLastNameRequired.Error())
 		}
 
 		if err := s.Update(ctx, req.ID, req.FirstName, req.LastName, req.Email, req.Phone); err != nil {
-			return nil, response.BadRequest(err.Error())
+
+			if err == ErrNotFound {
+				return nil, response.NotFound(err.Error())
+			}
+
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.OK("success", nil, nil), nil
@@ -159,7 +167,11 @@ func makeDeleteEndpoint(s Service) Controller {
 		req := request.(DeleteReq)
 
 		if err := s.Delete(ctx, req.ID); err != nil {
-			return nil, response.BadRequest(err.Error())
+			if err == ErrNotFound {
+				return nil, response.NotFound(err.Error())
+			}
+
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.OK("success", nil, nil), nil

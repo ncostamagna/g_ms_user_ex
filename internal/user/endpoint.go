@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ncostamagna/g_ms_client/meta"
 	"github.com/ncostamagna/g_ms_user_ex/pkg/response"
@@ -96,7 +97,7 @@ func makeGetEndpoint(s Service) Controller {
 
 		user, err := s.Get(ctx, req.ID)
 		if err != nil {
-			if err == ErrNotFound {
+			if errors.As(err, &ErrNotFound{}) {
 				return nil, response.NotFound(err.Error())
 			}
 
@@ -150,7 +151,7 @@ func makeUpdateEndpoint(s Service) Controller {
 
 		if err := s.Update(ctx, req.ID, req.FirstName, req.LastName, req.Email, req.Phone); err != nil {
 
-			if err == ErrNotFound {
+			if errors.As(err, &ErrNotFound{}) {
 				return nil, response.NotFound(err.Error())
 			}
 
@@ -167,7 +168,7 @@ func makeDeleteEndpoint(s Service) Controller {
 		req := request.(DeleteReq)
 
 		if err := s.Delete(ctx, req.ID); err != nil {
-			if err == ErrNotFound {
+			if errors.As(err, &ErrNotFound{}) {
 				return nil, response.NotFound(err.Error())
 			}
 

@@ -65,7 +65,7 @@ func (r *repo) Get(ctx context.Context, id string) (*domain.User, error) {
 
 	if result.Error != nil {
 		r.log.Println(result.Error)
-		return nil, ErrNotFound
+		return nil, ErrNotFound{id}
 	}
 	return &user, nil
 }
@@ -81,7 +81,7 @@ func (r *repo) Delete(ctx context.Context, id string) error {
 
 	if result.RowsAffected == 0 {
 		r.log.Printf("user %s doesn't exists", id)
-		return ErrNotFound
+		return ErrNotFound{id}
 	}
 	return nil
 }
@@ -114,7 +114,7 @@ func (r *repo) Update(ctx context.Context, id string, firstName *string, lastNam
 
 	if result.RowsAffected == 0 {
 		r.log.Printf("user %s doesn't exists", id)
-		return ErrNotFound
+		return ErrNotFound{id}
 	}
 
 	return nil

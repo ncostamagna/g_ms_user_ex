@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/ncostamagna/g_ms_user_ex/internal/domain"
+	"github.com/ncostamagna/g_ms_domain_ex/domain"
 )
 
 type (

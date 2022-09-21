@@ -72,12 +72,24 @@ func (s service) Get(ctx context.Context, id string) (*domain.User, error) {
 }
 
 func (s service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+
+	if err := s.repo.Delete(ctx, id); err != nil {
+		s.log.Println(err)
+		return err
+	}
+
+	return nil
 }
 
+// 2 formas de validar si exite, mediante el get o mediante el result del repository
 // ver que podemos tener problemas al agregar texto mayor a lo que se espera en la base de datos
 func (s service) Update(ctx context.Context, id string, firstName *string, lastName *string, email *string, phone *string) error {
-	return s.repo.Update(ctx, id, firstName, lastName, email, phone)
+
+	if err := s.repo.Update(ctx, id, firstName, lastName, email, phone); err != nil {
+		s.log.Println(err)
+		return err
+	}
+	return nil
 }
 
 func (s service) Count(ctx context.Context, filters Filters) (int, error) {

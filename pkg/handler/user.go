@@ -112,7 +112,7 @@ func decodeUpdateUser(_ context.Context, r *http.Request) (interface{}, error) {
 func decodeDeleteUser(_ context.Context, r *http.Request) (interface{}, error) {
 
 	path := mux.Vars(r)
-	req := user.UpdateReq{
+	req := user.DeleteReq{
 		ID: path["id"],
 	}
 

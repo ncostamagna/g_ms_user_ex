@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -74,6 +75,10 @@ func (r *repo) Delete(ctx context.Context, id string) error {
 	if result.Error != nil {
 		return result.Error
 	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("Not found")
+	}
 	return nil
 }
 
@@ -97,8 +102,13 @@ func (r *repo) Update(ctx context.Context, id string, firstName *string, lastNam
 		values["phone"] = *phone
 	}
 
-	if err := r.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Updates(values); err.Error != nil {
-		return err.Error
+	result := r.db.WithContext(ctx).Model(&domain.User{}).Where("id = ?", id).Updates(values)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("Not found")
 	}
 
 	return nil
